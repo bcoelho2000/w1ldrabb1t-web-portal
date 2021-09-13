@@ -22,6 +22,7 @@ export default function App()
   const [waving, setWaving] = React.useState(false);
   let [waveTxn, setWaveTxn] = React.useState("");
   const [totalWaves, setTotalWaves] = React.useState(0);
+  const [visibleWaves, setVisibleWaves] = React.useState(5);
 
   const contractAddress = "0xF8ED7a7Cee5761b33bfa2A680A271c802467cA2B";
   const contractABI = ABIfile.abi;
@@ -180,8 +181,10 @@ export default function App()
     console.log("waves found!");
 
     let wavesCleaned = [];
+    let wavesIdx = 0;
     waves.forEach(wave =>
     {
+
         let waveClean = {
          address: wave.userAddress,
          timestamp: new Date(wave.timestamp * 1000),
@@ -192,19 +195,23 @@ export default function App()
 
        console.log(wave.userAddress + " waved: "+waveClean.message);
 
-       store.addNotification({
-         title: `Wave by ${waveClean.address}`,
-         message: waveClean.message,
-         type: "default",
-         container: "bottom-full",
-         insert: "top",
-         animationIn: ["animate__animated", "animate__fadeIn"],
-         animationOut: ["animate__animated", "animate__fadeOut"],
-         dismiss: {
-           duration: 0,
-           showIcon: true
-         }
-       });
+       // IMPROVE: hardcoded to show the last 5 waves...
+       if(wavesIdx++ >= waves.length-5)
+       {
+         store.addNotification({
+           title: `Wave by ${waveClean.address}`,
+           message: waveClean.message,
+           type: "default",
+           container: "bottom-full",
+           insert: "top",
+           animationIn: ["animate__animated", "animate__fadeIn"],
+           animationOut: ["animate__animated", "animate__fadeOut"],
+           dismiss: {
+             duration: 0,
+             showIcon: true
+           }
+         });
+       }
     });
     setAllWaves(wavesCleaned);
   }
