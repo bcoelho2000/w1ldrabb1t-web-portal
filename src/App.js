@@ -15,7 +15,7 @@ import loadingGIF from "./gifs/loading.gif";
 import ABIfile from "./utils/WavePortal.json"
 
 
-export default function App() 
+export default function App()
 {
 
   const [currAccount, setCurrentAccount] = React.useState("");
@@ -28,7 +28,7 @@ export default function App()
 
   const messageInput = React.createRef();
 
-  const displayNotification = (title, msg, type, insert = "top", container = "top-left") => 
+  const displayNotification = (title, msg, type, insert = "top", container = "top-left") =>
   {
     /*
     success
@@ -51,10 +51,10 @@ export default function App()
           onScreen: true
         }
       });
-    
+
   }
 
-  const checkIfWalletIsConnected = () => 
+  const checkIfWalletIsConnected = () =>
   {
     const { ethereum } = window;
     if(!ethereum)
@@ -71,7 +71,7 @@ export default function App()
     }
 
     ethereum.request({ method: 'eth_accounts'})
-    .then(accounts => 
+    .then(accounts =>
       {
         if(accounts.length !== 0)
         {
@@ -81,6 +81,36 @@ export default function App()
           displayNotification("Wallet required", `Found an authorized account: ${account}`, "success");
 
           setCurrentAccount(account);
+
+          getAllWaves();
+
+          //Subscribing to events from the smart contract
+          //NewWave(address indexed _from, uint _timestamp, string _message)
+          console.log("Listeners for NewWaves: "+waveportalContract.listenerCount("NewWave"));
+          if(waveportalContract.listenerCount("NewWave") == 0)
+          {
+            console.log("waveportalContract.on NewWave register...");
+
+            waveportalContract.on("NewWave", (_from, _timestamp, _message) => {
+              console.log("waveportalContract.on NewWave exec!");
+              // Called when anyone changes the value
+              store.addNotification({
+                  title: `New Wave by ${_from}`,
+                  message: _message,
+                  type: "success",
+                  container: "bottom-full",
+                  insert: "top",
+                  animationIn: ["animate__animated", "animate__fadeIn"],
+                  animationOut: ["animate__animated", "animate__fadeOut"],
+                  dismiss: {
+                    duration: 0,
+                    showIcon: true
+                  }
+                });
+
+            });
+          }
+
         }
         else
         {
@@ -105,12 +135,11 @@ export default function App()
     )
   };
 
-  React.useEffect( () => {
-    checkIfWalletIsConnected()
-  }, []);
 
-  const connectWallet = () => 
+
+  const connectWallet = () =>
   {
+    console.log("Connect Wallet exec start");
     const { ethereum } = window;
     if(!ethereum) displayNotification("Metamask required", "Bad news billy bears... You need to get metamask installed.", "danger");
 
@@ -121,6 +150,7 @@ export default function App()
       setCurrentAccount(accounts[0]);
     })
     .catch(err => console.log(err));
+    console.log("Connect Wallet exec finish");
   }
 
  const getRandomNumber = (min, max) =>
@@ -131,13 +161,13 @@ export default function App()
   let wavingSounds = [
       new Sound(flute1Sound),
       new Sound(flute2Sound)];
-  
+
   let miningSound = new Sound(drummingSound);
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   const waveportalContract = new ethers.Contract(contractAddress, contractABI, signer);
-  
+
   const [allWaves, setAllWaves] = React.useState([]);
   async function getAllWaves()
   {
@@ -151,7 +181,7 @@ export default function App()
 
     let wavesCleaned = [];
     waves.forEach(wave =>
-      {
+    {
         let waveClean = {
          address: wave.userAddress,
          timestamp: new Date(wave.timestamp * 1000),
@@ -160,66 +190,92 @@ export default function App()
 
        wavesCleaned.push(waveClean);
 
-       debugger;
-       
-       
-      }
-    );
+       console.log(wave.userAddress + " waved: "+waveClean.message);
+
+       store.addNotification({
+         title: `Wave by ${waveClean.address}`,
+         message: waveClean.message,
+         type: "default",
+         container: "bottom-full",
+         insert: "top",
+         animationIn: ["animate__animated", "animate__fadeIn"],
+         animationOut: ["animate__animated", "animate__fadeOut"],
+         dismiss: {
+           duration: 0,
+           showIcon: true
+         }
+       });
+    });
     setAllWaves(wavesCleaned);
   }
 
-  let getTotalWaves = async () => 
+  let getTotalWaves = async () =>
   {
     let resTotalWaves = await waveportalContract.getTotalWaves();
     setTotalWaves(resTotalWaves.toNumber());
     console.log("Total waves: ", resTotalWaves);
   }
 
-  React.useEffect( () => {
-    getTotalWaves();
-    getAllWaves();
-  }, []);
- 
-  const wave = async () => 
+
+
+  const wave = async () =>
   {
-    setWaving(true);
-    miningSound.play();
+    try
+    {
+      setWaving(true);
+      miningSound.play();
 
-    waveTxn = await waveportalContract.wave(messageInput.current.value);
-    console.log("Mining...", waveTxn.hash);
+      waveTxn = await waveportalContract.wave(messageInput.current.value);
+      console.log("Mining...", waveTxn.hash);
 
-    let notificationId = store.addNotification({
-        title: "Mining...",
-        message: `Processing your transaction: ${waveTxn.hash}`,
-        type: "info",
-        insert: "top",
-        container: "top-left",
-        animationIn: ["animate__animated", "animate__fadeIn"],
-        animationOut: ["animate__animated", "animate__fadeOut"]
-      });
+      let notificationId = store.addNotification({
+          title: "Mining...",
+          message: `Processing your transaction: ${waveTxn.hash}`,
+          type: "info",
+          insert: "top",
+          container: "top-left",
+          animationIn: ["animate__animated", "animate__fadeIn"],
+          animationOut: ["animate__animated", "animate__fadeOut"]
+        });
 
-    setWaveTxn(waveTxn);
-    await waveTxn.wait();
-    store.removeNotification(notificationId);
+      setWaveTxn(waveTxn);
+      await waveTxn.wait();
+      store.removeNotification(notificationId);
 
-    displayNotification("Mined!", `Transaction mined succesfully: ${waveTxn.hash}`, "success");
-    console.log("Mined...", waveTxn.hash);
+      displayNotification("Mined!", `Transaction mined succesfully: ${waveTxn.hash}`, "success");
+      console.log("Mined...", waveTxn.hash);
 
-    getTotalWaves();
-    
-    miningSound.pause();
-    wavingSounds[getRandomNumber(0, wavingSounds.length)].play();
-    setWaving(false);
-    
+      getTotalWaves();
+    }
+    catch(error)
+    {
+        displayNotification("Error!", error.message, "danger");
+        console.error(error);
+    }
+    finally
+    {
+      miningSound.pause();
+      wavingSounds[getRandomNumber(0, wavingSounds.length)].play();
+      setWaving(false);
+    }
   }
-  
+
+
+
+  React.useEffect( () => {
+    console.log("React.useEffect running");
+    checkIfWalletIsConnected();
+    getTotalWaves();
+    console.log("React.useEffect finish");
+  }, []);
+
   return (
     <div className="appRoot">
-      
+
       <ReactNotifications/>
-      
+
       <div className="mainContainer">
-        
+
         <div className="dataContainer">
           <div className="header">
           🐇 Can you find the w1ldrabb1t?
@@ -229,16 +285,16 @@ export default function App()
           The w1ldrabb1t got {totalWaves} waves from people who connected their Ethereum wallet for a chance to earn ETH!
           </div>
 
-          { waving ? 
+          { waving ?
             <div className="loading">
-              <img src={loadingGIF} style={{width: "30%"}}/>              
+              <img src={loadingGIF} style={{width: "30%"}}/>
             </div>
             : null
           }
 
-          { currAccount ? 
+          { currAccount ?
           <div className="formContainer">
-            <input type="text" className="msgTextInput" defaultValue="A message..." ref={messageInput}/>  
+            <input type="text" className="msgTextInput" defaultValue="A message..." ref={messageInput}/>
 
             <button className="button-30" style={{ visibility: (!waving ? 'visible' : 'hidden') }} onClick={wave}>
               Wave
