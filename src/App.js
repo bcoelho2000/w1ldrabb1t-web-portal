@@ -1,0 +1,262 @@
+import * as React from "react";
+import ReactNotifications from 'react-notifications-component';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css/animate.min.css';
+import './form.css';
+import { ethers } from "ethers";
+import './App.css';
+import { Sound } from './sounds/sound.js';
+import flute1Sound from "./sounds/mixkit-flute-cell-phone-alert-2315.wav";
+import flute2Sound from "./sounds/mixkit-flute-mobile-phone-notification-alert-2316.wav";
+import drummingSound from "./sounds/mixkit-drumming-atmospheric-570.wav";
+import rabbitRunningGIF from "./gifs/rabbit-running.gif";
+import loadingGIF from "./gifs/loading.gif";
+import ABIfile from "./utils/WavePortal.json"
+
+
+export default function App() 
+{
+
+  const [currAccount, setCurrentAccount] = React.useState("");
+  const [waving, setWaving] = React.useState(false);
+  let [waveTxn, setWaveTxn] = React.useState("");
+  const [totalWaves, setTotalWaves] = React.useState(0);
+
+  const contractAddress = "0xF8ED7a7Cee5761b33bfa2A680A271c802467cA2B";
+  const contractABI = ABIfile.abi;
+
+  const messageInput = React.createRef();
+
+  const displayNotification = (title, msg, type, insert = "top", container = "top-left") => 
+  {
+    /*
+    success
+    danger
+    info
+    default
+    warning
+    */
+
+      store.addNotification({
+        title: title,
+        message: msg,
+        type: type,
+        insert: "top",
+        container: "top-left",
+        animationIn: ["animate__animated", "animate__fadeIn"],
+        animationOut: ["animate__animated", "animate__fadeOut"],
+        dismiss: {
+          duration: 5000,
+          onScreen: true
+        }
+      });
+    
+  }
+
+  const checkIfWalletIsConnected = () => 
+  {
+    const { ethereum } = window;
+    if(!ethereum)
+    {
+      displayNotification("Metamask required", "Bad news billy bears... You need to get metamask installed.", "danger");
+      return;
+    }
+    else
+    {
+      console.log ("metamask installed so it's good to go.", ethereum);
+
+      displayNotification("Metamask required", "You have it already. Cool!", "success");
+
+    }
+
+    ethereum.request({ method: 'eth_accounts'})
+    .then(accounts => 
+      {
+        if(accounts.length !== 0)
+        {
+          const account = accounts[0];
+          console.log("Found an authorized account: ", account);
+
+          displayNotification("Wallet required", `Found an authorized account: ${account}`, "success");
+
+          setCurrentAccount(account);
+        }
+        else
+        {
+          console.log("No authorized accounts found...");
+
+          store.addNotification({
+          title: "Wallet required",
+          message: "No authorized accounts found...",
+          type: "warning",
+          insert: "top",
+          container: "top-full",
+          animationIn: ["animate__animated", "animate__fadeIn"],
+          animationOut: ["animate__animated", "animate__fadeOut"],
+          dismiss: {
+            duration: 0,
+            showIcon: true
+          }
+        });
+
+        }
+      }
+    )
+  };
+
+  React.useEffect( () => {
+    checkIfWalletIsConnected()
+  }, []);
+
+  const connectWallet = () => 
+  {
+    const { ethereum } = window;
+    if(!ethereum) displayNotification("Metamask required", "Bad news billy bears... You need to get metamask installed.", "danger");
+
+    ethereum.request({ method: 'eth_requestAccounts'})
+    .then(accounts => {
+      console.log("Connected ", accounts[0]);
+      displayNotification("Wallet connection", `Connect with ${accounts[0]}`, "success");
+      setCurrentAccount(accounts[0]);
+    })
+    .catch(err => console.log(err));
+  }
+
+ const getRandomNumber = (min, max) =>
+  {
+    return Math.floor(Math.random() * (max - min) + min);
+  };
+
+  let wavingSounds = [
+      new Sound(flute1Sound),
+      new Sound(flute2Sound)];
+  
+  let miningSound = new Sound(drummingSound);
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const waveportalContract = new ethers.Contract(contractAddress, contractABI, signer);
+  
+  const [allWaves, setAllWaves] = React.useState([]);
+  async function getAllWaves()
+  {
+    console.log("call to async function getAllWaves");
+
+    let waves = await waveportalContract.getAllWaves();
+    if(!(waves!=null && waves.length>0))
+      return;
+
+    console.log("waves found!");
+
+    let wavesCleaned = [];
+    waves.forEach(wave =>
+      {
+        let waveClean = {
+         address: wave.userAddress,
+         timestamp: new Date(wave.timestamp * 1000),
+         message: wave.message
+       };
+
+       wavesCleaned.push(waveClean);
+
+       debugger;
+       
+       
+      }
+    );
+    setAllWaves(wavesCleaned);
+  }
+
+  let getTotalWaves = async () => 
+  {
+    let resTotalWaves = await waveportalContract.getTotalWaves();
+    setTotalWaves(resTotalWaves.toNumber());
+    console.log("Total waves: ", resTotalWaves);
+  }
+
+  React.useEffect( () => {
+    getTotalWaves();
+    getAllWaves();
+  }, []);
+ 
+  const wave = async () => 
+  {
+    setWaving(true);
+    miningSound.play();
+
+    waveTxn = await waveportalContract.wave(messageInput.current.value);
+    console.log("Mining...", waveTxn.hash);
+
+    let notificationId = store.addNotification({
+        title: "Mining...",
+        message: `Processing your transaction: ${waveTxn.hash}`,
+        type: "info",
+        insert: "top",
+        container: "top-left",
+        animationIn: ["animate__animated", "animate__fadeIn"],
+        animationOut: ["animate__animated", "animate__fadeOut"]
+      });
+
+    setWaveTxn(waveTxn);
+    await waveTxn.wait();
+    store.removeNotification(notificationId);
+
+    displayNotification("Mined!", `Transaction mined succesfully: ${waveTxn.hash}`, "success");
+    console.log("Mined...", waveTxn.hash);
+
+    getTotalWaves();
+    
+    miningSound.pause();
+    wavingSounds[getRandomNumber(0, wavingSounds.length)].play();
+    setWaving(false);
+    
+  }
+  
+  return (
+    <div className="appRoot">
+      
+      <ReactNotifications/>
+      
+      <div className="mainContainer">
+        
+        <div className="dataContainer">
+          <div className="header">
+          🐇 Can you find the w1ldrabb1t?
+          </div>
+
+          <div className="bio">
+          The w1ldrabb1t got {totalWaves} waves from people who connected their Ethereum wallet for a chance to earn ETH!
+          </div>
+
+          { waving ? 
+            <div className="loading">
+              <img src={loadingGIF} style={{width: "30%"}}/>              
+            </div>
+            : null
+          }
+
+          { currAccount ? 
+          <div className="formContainer">
+            <input type="text" className="msgTextInput" defaultValue="A message..." ref={messageInput}/>  
+
+            <button className="button-30" style={{ visibility: (!waving ? 'visible' : 'hidden') }} onClick={wave}>
+              Wave
+            </button>
+          </div>
+          : (
+
+            <button className="waveButton" onClick={connectWallet}>
+            Connect Wallet
+            </button>
+
+          )}
+
+          <div className="caption">
+          Pssst... Legend has it that if you 👋, sometimes the w1ldrabb1t will 👋 back...
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

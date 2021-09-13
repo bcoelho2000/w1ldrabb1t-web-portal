@@ -1,0 +1,23 @@
+.msgTextInput
+{
+    display: block;
+    width: 98%;
+    border: 0;
+    border-bottom: solid 1px #e6e6e6;
+    padding: 5px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    color: #ffa595;
+}
+
+.msgTextInput:focus
+{
+  border-bottom: solid 2px #ffa595;
+  box-shadow: #D6D6E7 0 3px 7px inset;
+}
+
+.msgTextInput:active {
+  border-bottom: solid 2px #ffa595;
+  box-shadow: #D6D6E7 0 3px 7px inset;
+}
