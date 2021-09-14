@@ -24,7 +24,7 @@ export default function App()
   const [totalWaves, setTotalWaves] = React.useState(0);
   const [visibleWaves, setVisibleWaves] = React.useState(5);
 
-  const contractAddress = "0xF8ED7a7Cee5761b33bfa2A680A271c802467cA2B";
+  const contractAddress = "0xECD0030dCA65548A9b4B3ad549deD3edD4487100";
   const contractABI = ABIfile.abi;
 
   const messageInput = React.createRef();
@@ -112,6 +112,32 @@ export default function App()
             });
           }
 
+          //event NewPoints(address indexed _user, uint _pointsEarned, uint _pointsTotal);
+          console.log("Listeners for NewPoints: "+waveportalContract.listenerCount("NewPoints"));
+          if(waveportalContract.listenerCount("NewPoints") == 0)
+          {
+            console.log("waveportalContract.on NewPoints register...");
+
+            waveportalContract.on("NewPoints", (_user, _pointsEarned, _pointsTotal) => {
+              console.log("waveportalContract.on NewPoints exec!");
+              // Called when anyone changes the value
+              store.addNotification({
+                  title: `🐇 👋`,
+                  message: `WOW! You earned ${_pointsEarned} of a total of ${_pointsTotal}. Check your wallet for a suprise from 🐇`,
+                  type: "success",
+                  container: "center",
+                  insert: "top",
+                  animationIn: ["animate__animated", "animate__fadeIn"],
+                  animationOut: ["animate__animated", "animate__fadeOut"],
+                  dismiss: {
+                    duration: 0,
+                    showIcon: true
+                  }
+                });
+
+            });
+          }
+
         }
         else
         {
@@ -160,10 +186,10 @@ export default function App()
   };
 
   let wavingSounds = [
-      new Sound(flute1Sound),
-      new Sound(flute2Sound)];
+      new Sound(flute1Sound, 0.35),
+      new Sound(flute2Sound, 0.35)];
 
-  let miningSound = new Sound(drummingSound);
+  let miningSound = new Sound(drummingSound, 0.25);
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
