@@ -10,6 +10,7 @@ import { Sound } from './sounds/sound.js';
 import flute1Sound from "./sounds/mixkit-flute-cell-phone-alert-2315.wav";
 import flute2Sound from "./sounds/mixkit-flute-mobile-phone-notification-alert-2316.wav";
 import drummingSound from "./sounds/mixkit-drumming-atmospheric-570.wav";
+import wonPointsSound from "./sounds/mixkit-uplifting-flute-notification-2317.wav";
 import rabbitRunningGIF from "./gifs/rabbit-running.gif";
 import loadingGIF from "./gifs/loading.gif";
 import ABIfile from "./utils/WavePortal.json"
@@ -120,6 +121,9 @@ export default function App()
 
             waveportalContract.on("NewPoints", (_user, _pointsEarned, _pointsTotal) => {
               console.log("waveportalContract.on NewPoints exec!");
+
+              new Sound(wonPointsSound, 0.5).play();
+
               // Called when anyone changes the value
               store.addNotification({
                   title: `🐇 👋`,
