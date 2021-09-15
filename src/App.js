@@ -25,7 +25,7 @@ export default function App()
   const [totalWaves, setTotalWaves] = React.useState(0);
   const [visibleWaves, setVisibleWaves] = React.useState(5);
 
-  const contractAddress = "0xECD0030dCA65548A9b4B3ad549deD3edD4487100";
+  const contractAddress = "0xBEFf03ccdf19C4bfAd63316a16357b7b1e0254d7";
   const contractABI = ABIfile.abi;
 
   const messageInput = React.createRef();
@@ -126,8 +126,8 @@ export default function App()
 
               // Called when anyone changes the value
               store.addNotification({
-                  title: `🐇 👋`,
-                  message: `WOW! You earned ${_pointsEarned} of a total of ${_pointsTotal}. Check your wallet for a suprise from 🐇`,
+                  title: `You won!`,
+                  message: `WOW! You earned ${_pointsEarned} of a total of ${_pointsTotal}. Check your wallet for a suprise!`,
                   type: "success",
                   container: "center",
                   insert: "top",
