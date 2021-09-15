@@ -26,6 +26,7 @@ export default function App()
   const [visibleWaves, setVisibleWaves] = React.useState(5);
 
   const contractAddress = "0xBEFf03ccdf19C4bfAd63316a16357b7b1e0254d7";
+  const contractAddress = "0xECD0030dCA65548A9b4B3ad549deD3edD4487100";
   const contractABI = ABIfile.abi;
 
   const messageInput = React.createRef();
@@ -160,11 +161,7 @@ export default function App()
     return Math.floor(Math.random() * (max - min) + min);
   };
 
-  let wavingSounds = [
-      new Sound(flute1Sound, 0.35),
-      new Sound(flute2Sound, 0.35)];
 
-  let miningSound = new Sound(drummingSound, 0.25);
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
@@ -228,6 +225,11 @@ export default function App()
 
   const wave = async () =>
   {
+    let miningSound = new Sound("drummingSound", drummingSound);
+    let wavingSounds = [
+        new Sound("flute1Sound", flute1Sound),
+        new Sound("flute2Sound", flute2Sound)];
+
     try
     {
       setWaving(true);
@@ -262,8 +264,12 @@ export default function App()
     }
     finally
     {
-      miningSound.pause();
-      wavingSounds[getRandomNumber(0, wavingSounds.length)].play();
+      if(miningSound!=null)
+        miningSound.pause();
+
+      let wavingSound = wavingSounds[getRandomNumber(0, wavingSounds.length)];
+      if(wavingSound!=null)
+        wavingSound.play();
       setWaving(false);
     }
   }
