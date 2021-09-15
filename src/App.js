@@ -183,6 +183,7 @@ export default function App()
       console.log("Connected ", accounts[0]);
       displayNotification("Wallet connection", `Connect with ${accounts[0]}`, "success");
       setCurrentAccount(accounts[0]);
+      checkIfWalletIsConnected();
     })
     .catch(err => console.log(err));
     console.log("Connect Wallet exec finish");
@@ -366,7 +367,7 @@ export default function App()
           </div>
           : (
 
-            <button className="waveButton" onClick={connectWallet}>
+            <button className="connectButton" onClick={connectWallet}>
             Connect Wallet
             </button>
 
