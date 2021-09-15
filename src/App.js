@@ -9,7 +9,7 @@ import './App.css';
 import { Sound } from './sounds/sound.js';
 import flute1Sound from "./sounds/mixkit-flute-cell-phone-alert-2315.wav";
 import flute2Sound from "./sounds/mixkit-flute-mobile-phone-notification-alert-2316.wav";
-import drummingSound from "./sounds/mixkit-drumming-atmospheric-570.wav";
+import loadingSound from "./sounds/alexander-nakarada-chase.mp3";
 import wonPointsSound from "./sounds/mixkit-uplifting-flute-notification-2317.wav";
 import rabbitRunningGIF from "./gifs/rabbit-running.gif";
 import loadingGIF from "./gifs/loading.gif";
@@ -100,7 +100,7 @@ export default function App()
 
           getAllWaves();
 
-          getPoints(account);
+          getPoints(currAccount);
 
           //Subscribing to events from the smart contract
           //NewWave(address indexed _from, uint _timestamp, string _message)
@@ -154,7 +154,9 @@ export default function App()
                   }
                 });
 
-                //new Sound("wonPointsSound", wonPointsSound, 0.5).play();
+                setMyTotalPoints(_pointsTotal.toNumber());
+
+                new Sound("wonPointsSound", wonPointsSound, 0.5).play();
             });
 
           }
@@ -287,7 +289,7 @@ export default function App()
 
   const wave = async () =>
   {
-    let miningSound = new Sound("drummingSound", drummingSound);
+    let miningSound = new Sound("loadingSound", loadingSound, 0.3);
     let wavingSounds = [
         new Sound("flute1Sound", flute1Sound),
         new Sound("flute2Sound", flute2Sound)];
@@ -336,12 +338,11 @@ export default function App()
     }
   }
 
-
-
   React.useEffect( () => {
     console.log("React.useEffect running");
     checkIfWalletIsConnected();
     getTotalWaves();
+    getPoints(currAccount);
     console.log("React.useEffect finish");
   }, []);
 
@@ -390,6 +391,12 @@ export default function App()
 
           <div className="credits">
           Developed by <a href="https://www.linkedin.com/in/iambrunocoelho/">Bruno Coelho</a> following the course of the incredible folks at <a href="https://twitter.com/_buildspace">_buildspace</a>, so check <a href="https://buildspace.so/">https://buildspace.so/</a>
+          </div>
+          <div className="credits">
+          Chase by Alexander Nakarada | https://www.serpentsoundstudios.com
+          Music promoted by https://www.chosic.com
+          Attribution 4.0 International (CC BY 4.0)
+          https://creativecommons.org/licenses/by/4.0/
           </div>
         </div>
       </div>
