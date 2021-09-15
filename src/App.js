@@ -24,10 +24,9 @@ export default function App()
   let [waveTxn, setWaveTxn] = React.useState("");
   const [totalWaves, setTotalWaves] = React.useState(0);
   const [visibleWaves, setVisibleWaves] = React.useState(5);
-
-  const contractAddress = "0xBEFf03ccdf19C4bfAd63316a16357b7b1e0254d7";
-  const contractAddress = "0xECD0030dCA65548A9b4B3ad549deD3edD4487100";
+  const contractAddress = "0x80bF093022FDE99b6AFc32934056ed3aaaE44cE4";
   const contractABI = ABIfile.abi;
+  
 
   const messageInput = React.createRef();
 
@@ -95,13 +94,41 @@ export default function App()
             console.log("waveportalContract.on NewWave register...");
 
             waveportalContract.on("NewWave", (_from, _timestamp, _message) => {
-              console.log("waveportalContract.on NewWave exec!");
+                console.log("waveportalContract.on NewWave exec!");
+                // Called when anyone changes the value
+                store.addNotification({
+                    title: `New Wave by ${_from}`,
+                    message: _message,
+                    type: "success",
+                    container: "bottom-full",
+                    insert: "top",
+                    animationIn: ["animate__animated", "animate__fadeIn"],
+                    animationOut: ["animate__animated", "animate__fadeOut"],
+                    dismiss: {
+                      duration: 0,
+                      showIcon: true
+                    }
+                  });
+
+              });
+          }
+
+          //event NewPoints(address indexed _user, uint _pointsEarned, uint _pointsTotal);
+          console.log("Listeners for NewPoints: "+waveportalContract.listenerCount("NewPoints"));
+          if(waveportalContract.listenerCount("NewPoints") == 0)
+          {
+            console.log("waveportalContract.on NewPoints register...");
+
+            waveportalContract.on("NewPoints", (_user, _pointsEarned, _pointsTotal) =>
+            {
+              console.log("waveportalContract.on NewPoints exec!");
+
               // Called when anyone changes the value
               store.addNotification({
-                  title: `New Wave by ${_from}`,
-                  message: _message,
+                  title: "You won!",
+                  message: `WOW! You earned ${_pointsEarned} of a total of ${_pointsTotal}. Check your wallet for a suprise!`,
                   type: "success",
-                  container: "bottom-full",
+                  container: "center",
                   insert: "top",
                   animationIn: ["animate__animated", "animate__fadeIn"],
                   animationOut: ["animate__animated", "animate__fadeOut"],
@@ -111,7 +138,9 @@ export default function App()
                   }
                 });
 
+                //new Sound("wonPointsSound", wonPointsSound, 0.5).play();
             });
+
           }
 
         }
@@ -120,18 +149,18 @@ export default function App()
           console.log("No authorized accounts found...");
 
           store.addNotification({
-          title: "Wallet required",
-          message: "No authorized accounts found...",
-          type: "warning",
-          insert: "top",
-          container: "top-full",
-          animationIn: ["animate__animated", "animate__fadeIn"],
-          animationOut: ["animate__animated", "animate__fadeOut"],
-          dismiss: {
-            duration: 0,
-            showIcon: true
-          }
-        });
+            title: "Wallet required",
+            message: "No authorized accounts found...",
+            type: "warning",
+            insert: "top",
+            container: "top-full",
+            animationIn: ["animate__animated", "animate__fadeIn"],
+            animationOut: ["animate__animated", "animate__fadeOut"],
+            dismiss: {
+              duration: 0,
+              showIcon: true
+            }
+          });
 
         }
       }
@@ -160,6 +189,8 @@ export default function App()
   {
     return Math.floor(Math.random() * (max - min) + min);
   };
+
+
 
 
 
@@ -235,7 +266,7 @@ export default function App()
       setWaving(true);
       miningSound.play();
 
-      waveTxn = await waveportalContract.wave(messageInput.current.value);
+      waveTxn = await waveportalContract.wave(messageInput.current.value, { gasLimit: 300000 });
       console.log("Mining...", waveTxn.hash);
 
       let notificationId = store.addNotification({
@@ -322,8 +353,8 @@ export default function App()
 
           )}
 
-          <div className="caption">
-          Pssst... Legend has it that if you 👋, sometimes the w1ldrabb1t will 👋 back...
+          <div className="credits">
+          Developed by <a href="https://www.linkedin.com/in/iambrunocoelho/">Bruno Coelho</a> following the course of the incredible folks at <a href="https://twitter.com/_buildspace">_buildspace</a>, so check <a href="https://buildspace.so/">https://buildspace.so/</a>
           </div>
         </div>
       </div>
