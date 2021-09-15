@@ -113,35 +113,6 @@ export default function App()
             });
           }
 
-          //event NewPoints(address indexed _user, uint _pointsEarned, uint _pointsTotal);
-          console.log("Listeners for NewPoints: "+waveportalContract.listenerCount("NewPoints"));
-          if(waveportalContract.listenerCount("NewPoints") == 0)
-          {
-            console.log("waveportalContract.on NewPoints register...");
-
-            waveportalContract.on("NewPoints", (_user, _pointsEarned, _pointsTotal) => {
-              console.log("waveportalContract.on NewPoints exec!");
-
-              new Sound(wonPointsSound, 0.5).play();
-
-              // Called when anyone changes the value
-              store.addNotification({
-                  title: `You won!`,
-                  message: `WOW! You earned ${_pointsEarned} of a total of ${_pointsTotal}. Check your wallet for a suprise!`,
-                  type: "success",
-                  container: "center",
-                  insert: "top",
-                  animationIn: ["animate__animated", "animate__fadeIn"],
-                  animationOut: ["animate__animated", "animate__fadeOut"],
-                  dismiss: {
-                    duration: 0,
-                    showIcon: true
-                  }
-                });
-
-            });
-          }
-
         }
         else
         {
