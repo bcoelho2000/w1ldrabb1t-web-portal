@@ -1,7 +1,3 @@
-body
-{
-  background-color: #e0e0df;
-}
 
 .mainContainer {
   display: inline-flex;
@@ -39,9 +35,14 @@ body
   text-align: center;
 }
 
+.pointsContainer
+{
+  text-align:center;
+}
+
 .credits
 {
-  margin-top: 16px;
+  margin-top: 50px;
   font-size: 12px;
   text-align: center;
   bottom: 0;

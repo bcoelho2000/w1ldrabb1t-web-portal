@@ -24,9 +24,10 @@ export default function App()
   let [waveTxn, setWaveTxn] = React.useState("");
   const [totalWaves, setTotalWaves] = React.useState(0);
   const [visibleWaves, setVisibleWaves] = React.useState(5);
+  const [myTotalPoints, setMyTotalPoints] = React.useState(0);
   const contractAddress = "0x80bF093022FDE99b6AFc32934056ed3aaaE44cE4";
   const contractABI = ABIfile.abi;
-  
+
 
   const messageInput = React.createRef();
 
@@ -85,6 +86,8 @@ export default function App()
           setCurrentAccount(account);
 
           getAllWaves();
+
+          getPoints(account);
 
           //Subscribing to events from the smart contract
           //NewWave(address indexed _from, uint _timestamp, string _message)
@@ -197,6 +200,18 @@ export default function App()
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   const waveportalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+
+  async function getPoints(account)
+  {
+    console.log("getPoints exec");
+
+    let points = await waveportalContract.getPointsForAddress(account);
+
+    setMyTotalPoints(points.toNumber());
+
+    console.log("getPoints finish")
+  }
 
   const [allWaves, setAllWaves] = React.useState([]);
   async function getAllWaves()
@@ -344,6 +359,10 @@ export default function App()
             <button className="button-30" style={{ visibility: (!waving ? 'visible' : 'hidden') }} onClick={wave}>
               Wave
             </button>
+
+            <div className="pointsContainer">
+            You caught {myTotalPoints} 🐇 so far!
+            </div>
           </div>
           : (
 
