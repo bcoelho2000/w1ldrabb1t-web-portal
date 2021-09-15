@@ -62,7 +62,20 @@ export default function App()
     const { ethereum } = window;
     if(!ethereum)
     {
-      displayNotification("Metamask required", "Bad news billy bears... You need to get metamask installed.", "danger");
+      store.addNotification({
+          title: "Metamask required",
+          message: "Go to https://metamask.io/download and get Metamask.",
+          type: "danger",
+          container: "top-full",
+          insert: "top",
+          animationIn: ["animate__animated", "animate__fadeIn"],
+          animationOut: ["animate__animated", "animate__fadeOut"],
+          dismiss: {
+            duration: 0,
+            showIcon: true
+          }
+        });
+
       return;
     }
     else
@@ -152,18 +165,20 @@ export default function App()
           console.log("No authorized accounts found...");
 
           store.addNotification({
-            title: "Wallet required",
-            message: "No authorized accounts found...",
-            type: "warning",
-            insert: "top",
-            container: "top-full",
-            animationIn: ["animate__animated", "animate__fadeIn"],
-            animationOut: ["animate__animated", "animate__fadeOut"],
-            dismiss: {
-              duration: 0,
-              showIcon: true
-            }
-          });
+              title: "No accounts found!",
+              message: "Go to https://metamask.io/download and install Metamask. Then get some ETH from Rinkeby (Test Network) by using https://app.mycrypto.com/faucet. After that you can connect your wallet by clicking the button below.",
+              type: "danger",
+              container: "top-full",
+              insert: "top",
+              animationIn: ["animate__animated", "animate__fadeIn"],
+              animationOut: ["animate__animated", "animate__fadeOut"],
+              dismiss: {
+                duration: 0,
+                showIcon: true,
+                click: false,
+                touch: false
+              }
+            });
 
         }
       }
